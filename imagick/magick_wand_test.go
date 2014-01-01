@@ -17,7 +17,7 @@ func Init() {
 }
 
 func TestNewMagickWand(t *testing.T) {
-	mw = NewMagickWand()
+	mw := NewMagickWand()
 	defer mw.Destroy()
 
 	if !mw.IsVerified() {
@@ -74,7 +74,7 @@ func TestDeleteImageArtifact(t *testing.T) {
 
 func TestGetImageFloats(t *testing.T) {
 	Initialize()
-	mw = NewMagickWand()
+	mw := NewMagickWand()
 	defer mw.Destroy()
 
 	if !mw.IsVerified() {
@@ -116,4 +116,109 @@ func TestGetImageFloats(t *testing.T) {
 		t.Fatalf("Expected NGB image to have %d float vals; Got %d", expected, actual)
 	}
 
+}
+
+func TestReadImageFloats(t *testing.T) {
+	Initialize()
+	mw := NewMagickWand()
+	mw2 := NewMagickWand()
+	defer mw.Destroy()
+	defer mw2.Destroy()
+
+	mw.SetSize(128, 128)
+	mw.ReadImage(`logo:`)
+	width, height := mw.GetImageWidth(), mw.GetImageHeight()
+	pixels := mw.GetImageFloats(FLOAT_FORMAT_RGB)
+
+	mw2.ReadImageFloats(pixels, width, height, FLOAT_FORMAT_RGB)
+	width2, height2 := mw2.GetImageWidth(), mw2.GetImageHeight()
+	pixels2 := mw2.GetImageFloats(FLOAT_FORMAT_RGB)
+
+	if width != width2 || height != height2 {
+		t.Fatalf("Width/Height does not match original. Got %d/%d. Expected %d/%d", width, height, width2, height2)
+	}
+
+	for i, orig := range pixels {
+		if pixels2[i] != orig {
+			t.Fatalf("Float pixel value of new image does not match original: Got %f, expected %f", pixels2[i], orig)
+		}
+	}
+
+}
+
+func BenchmarkFloatPixels(b *testing.B) {
+	wand := NewMagickWand()
+	defer wand.Destroy()
+
+	wand.ReadImage("logo:")
+	wand.ScaleImage(1024, 1024)
+
+	var (
+		rowNum int
+		inc    int
+		pixel  *PixelWand
+		pixels []float32
+	)
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+
+		inc = 0
+		cols := int(wand.GetImageWidth())
+		rows := int(wand.GetImageHeight())
+		pixels := make([]float32, cols*rows*3)
+
+		pixIter := wand.NewPixelIterator()
+		defer pixIter.Destroy()
+
+		for rowNum = 0; rowNum < rows; rowNum++ {
+			for _, pixel = range pixIter.GetNextIteratorRow() {
+				pixels[inc] = float32(pixel.GetRed())
+				pixels[inc+1] = float32(pixel.GetGreen())
+				pixels[inc+2] = float32(pixel.GetBlue())
+				inc += 3
+			}
+		}
+	}
+
+	b.StopTimer()
+	b.Logf("len(pixels) == %d", len(pixels))
+}
+
+func BenchmarkFloatPixelsC(b *testing.B) {
+	wand := NewMagickWand()
+	defer wand.Destroy()
+
+	wand.ReadImage("logo:")
+	wand.ScaleImage(1024, 1024)
+
+	var pixels []float32
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		pixels = wand.GetImageFloats(FLOAT_FORMAT_RGB)
+	}
+
+	b.StopTimer()
+	b.Logf("len(pixels) == %d", len(pixels))
+}
+
+func BenchmarkReadFloatPixelsC(b *testing.B) {
+	wand := NewMagickWand()
+	defer wand.Destroy()
+
+	wand.ReadImage("logo:")
+	wand.ScaleImage(1024, 1024)
+	pixels := wand.GetImageFloats(FLOAT_FORMAT_RGB)
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		wand.ReadImageFloats(pixels, 1024, 1024, FLOAT_FORMAT_RGB)
+	}
+
+	b.StopTimer()
+	b.Logf("len(pixels) == %d", len(pixels))
 }

@@ -1020,12 +1020,40 @@ func (mw *MagickWand) GetImageFloats(floatFormat FloatFormat) []float32 {
 	pixels := make([]float32, length)
 	floatPtr := (*C.float)(unsafe.Pointer(&pixels[0]))
 
-	_, err := C.getImageFloatRGB(mw.mw, floatPtr, C.FloatFormat(floatFormat))
+	C.getImageFloatRGB(mw.mw, floatPtr, C.FloatFormat(floatFormat))
+	return pixels
+}
+
+// Read the pixels values into the current MagickWand from an encoding-agnostic
+// representation of the image, as float pixel values per channel.
+//
+// Accepts a combination of FloatFormat flags indicating which channels
+// should be packed into the returned slice.
+//
+// Examples:
+//
+//     // Return format R,G,B,R,G,B,...
+//     FLOAT_FORMAT_RGB
+//
+//     // Return format R,G,B,A,R,G,B,A,...
+//     FLOAT_FORMAT_RGBA
+//
+//     // Return format R,A,R,A,...
+//     FLOAT_FORMAT_R | FLOAT_FORMAT_A
+//
+func (mw *MagickWand) ReadImageFloats(pixelData []float32, width, height uint, floatFormat FloatFormat) error {
+	mw.SetSize(width, height)
+	mw.ReadImage(`xc:none`)
+	mw.SetImageAlphaChannel(ALPHA_CHANNEL_OPAQUE)
+
+	floatPtr := (*C.float)(unsafe.Pointer(&pixelData[0]))
+
+	_, err := C.setImageFloatRGB(mw.mw, floatPtr, C.FloatFormat(floatFormat))
 	if err != nil {
-		panic(err)
+		return mw.GetLastError()
 	}
 
-	return pixels
+	return err
 }
 
 // Implements direct to memory image formats. It returns the image sequence

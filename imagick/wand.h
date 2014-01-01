@@ -17,6 +17,7 @@ typedef enum {
 } FloatFormat;
 
 void getImageFloatRGB(MagickWand *mw, float *results, FloatFormat channels);
+void setImageFloatRGB(MagickWand *mw, float *data, FloatFormat channels);
 
 #ifdef __cplusplus
 }
