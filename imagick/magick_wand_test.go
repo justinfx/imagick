@@ -5,274 +5,169 @@
 package imagick
 
 import (
-	"testing"
+    "testing"
 )
 
 var (
-	mw *MagickWand
+    mw *MagickWand
 )
 
 func Init() {
-	Initialize()
+    Initialize()
 }
 
 func TestNewMagickWand(t *testing.T) {
-	mw := NewMagickWand()
-	defer mw.Destroy()
+    mw := NewMagickWand()
+    defer mw.Destroy()
 
-	if !mw.IsVerified() {
-		t.Fatal("MagickWand not verified")
-	}
+    if !mw.IsVerified() {
+        t.Fatal("MagickWand not verified")
+    }
 }
 
 func TestCloningAndDestroying(t *testing.T) {
-	clone := mw.Clone()
-	if !clone.IsVerified() {
-		t.Fatal("Unsuccessful clone")
-	}
-	clone.Destroy()
-	if clone.IsVerified() || !mw.IsVerified() {
-		t.Fatal("MagickWand not properly destroyed")
-	}
+    clone := mw.Clone()
+    if !clone.IsVerified() {
+        t.Fatal("Unsuccessful clone")
+    }
+    clone.Destroy()
+    if clone.IsVerified() || !mw.IsVerified() {
+        t.Fatal("MagickWand not properly destroyed")
+    }
 }
 
 func TestQueryConfigureOptions(t *testing.T) {
-	opts := mw.QueryConfigureOptions("*")
-	if len(opts) == 0 {
-		t.Fatal("QueryConfigureOptions returned an empty array")
-	}
-	for _, opt := range opts {
-		mw.QueryConfigureOption(opt)
-	}
+    opts := mw.QueryConfigureOptions("*")
+    if len(opts) == 0 {
+        t.Fatal("QueryConfigureOptions returned an empty array")
+    }
+    for _, opt := range opts {
+        mw.QueryConfigureOption(opt)
+    }
 }
 
 func TestNonExistingConfigureOption(t *testing.T) {
-	_, err := mw.QueryConfigureOption("4321foobaramps1234")
-	if err == nil {
-		t.Fatal("Missing error when trying to get non-existing configure option")
-	}
+    _, err := mw.QueryConfigureOption("4321foobaramps1234")
+    if err == nil {
+        t.Fatal("Missing error when trying to get non-existing configure option")
+    }
 }
 
 func TestQueryFonts(t *testing.T) {
-	fonts := mw.QueryFonts("*")
-	if len(fonts) == 0 {
-		t.Fatal("ImageMagick have not identified a single font in this system")
-	}
+    fonts := mw.QueryFonts("*")
+    if len(fonts) == 0 {
+        t.Fatal("ImageMagick have not identified a single font in this system")
+    }
 }
 
 func TestQueryFormats(t *testing.T) {
-	formats := mw.QueryFormats("*")
-	if len(formats) == 0 {
-		t.Fatal("ImageMagick have not identified a single image format in this system")
-	}
+    formats := mw.QueryFormats("*")
+    if len(formats) == 0 {
+        t.Fatal("ImageMagick have not identified a single image format in this system")
+    }
 }
 
 func TestDeleteImageArtifact(t *testing.T) {
-	err := mw.DeleteImageArtifact("*")
-	t.Log(err.Error())
+    err := mw.DeleteImageArtifact("*")
+    t.Log(err.Error())
 }
 
 func TestExportImagePixels(t *testing.T) {
-	Initialize()
-	mw := NewMagickWand()
-	defer mw.Destroy()
+    Initialize()
+    mw := NewMagickWand()
+    defer mw.Destroy()
 
-	var err error
-	if err = mw.ReadImage(`logo:`); err != nil {
-		t.Fatal("Failed to read internal logo: image")
-	}
+    var err error
+    if err = mw.ReadImage(`logo:`); err != nil {
+        t.Fatal("Failed to read internal logo: image")
+    }
 
-	width, height := mw.GetImageWidth(), mw.GetImageHeight()
+    width, height := mw.GetImageWidth(), mw.GetImageHeight()
 
-	val, err := mw.ExportImagePixels(0, 0, width, height, "RGB", PIXEL_FLOAT)
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-	pixels := val.([]float32)
-	actual := len(pixels)
-	expected := (width * height * 3)
-	if actual != int(expected) {
-		t.Fatalf("Expected RGB image to have %d float vals; Got %d", expected, actual)
-	}
+    val, err := mw.ExportImagePixels(0, 0, width, height, "RGB", PIXEL_FLOAT)
+    if err != nil {
+        t.Fatal(err.Error())
+    }
+    pixels := val.([]float32)
+    actual := len(pixels)
+    expected := (width * height * 3)
+    if actual != int(expected) {
+        t.Fatalf("Expected RGB image to have %d float vals; Got %d", expected, actual)
+    }
 
-	val, err = mw.ExportImagePixels(0, 0, width, height, "RGBA", PIXEL_DOUBLE)
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-	pixels64 := val.([]float64)
-	actual = len(pixels64)
-	expected = (width * height * 4)
-	if actual != int(expected) {
-		t.Fatalf("Expected RGBA image to have %d float vals; Got %d", expected, actual)
-	}
+    val, err = mw.ExportImagePixels(0, 0, width, height, "RGBA", PIXEL_DOUBLE)
+    if err != nil {
+        t.Fatal(err.Error())
+    }
+    pixels64 := val.([]float64)
+    actual = len(pixels64)
+    expected = (width * height * 4)
+    if actual != int(expected) {
+        t.Fatalf("Expected RGBA image to have %d float vals; Got %d", expected, actual)
+    }
 
-	val, err = mw.ExportImagePixels(0, 0, width, height, "R", PIXEL_FLOAT)
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-	pixels = val.([]float32)
-	actual = len(pixels)
-	expected = (width * height * 1)
-	if actual != int(expected) {
-		t.Fatalf("Expected RNN image to have %d float vals; Got %d", expected, actual)
-	}
+    val, err = mw.ExportImagePixels(0, 0, width, height, "R", PIXEL_FLOAT)
+    if err != nil {
+        t.Fatal(err.Error())
+    }
+    pixels = val.([]float32)
+    actual = len(pixels)
+    expected = (width * height * 1)
+    if actual != int(expected) {
+        t.Fatalf("Expected RNN image to have %d float vals; Got %d", expected, actual)
+    }
 
-	val, err = mw.ExportImagePixels(0, 0, width, height, "GB", PIXEL_FLOAT)
-	if err != nil {
-		t.Fatal(err.Error())
-	}
-	pixels = val.([]float32)
-	actual = len(pixels)
-	expected = (width * height * 2)
-	if actual != int(expected) {
-		t.Fatalf("Expected NGB image to have %d float vals; Got %d", expected, actual)
-	}
+    val, err = mw.ExportImagePixels(0, 0, width, height, "GB", PIXEL_FLOAT)
+    if err != nil {
+        t.Fatal(err.Error())
+    }
+    pixels = val.([]float32)
+    actual = len(pixels)
+    expected = (width * height * 2)
+    if actual != int(expected) {
+        t.Fatalf("Expected NGB image to have %d float vals; Got %d", expected, actual)
+    }
 }
 
 func BenchmarkExportImagePixels(b *testing.B) {
-	wand := NewMagickWand()
-	defer wand.Destroy()
+    wand := NewMagickWand()
+    defer wand.Destroy()
 
-	wand.ReadImage("logo:")
-	wand.ScaleImage(1024, 1024)
+    wand.ReadImage("logo:")
+    wand.ScaleImage(1024, 1024)
 
-	var val interface{}
-	var pixels []float32
+    var val interface{}
+    var pixels []float32
 
-	b.ResetTimer()
+    b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
-		val, _ = wand.ExportImagePixels(0, 0, 1024, 1024, "RGB", PIXEL_FLOAT)
-		pixels = val.([]float32)
-	}
+    for i := 0; i < b.N; i++ {
+        val, _ = wand.ExportImagePixels(0, 0, 1024, 1024, "RGB", PIXEL_FLOAT)
+        pixels = val.([]float32)
+    }
 
-	b.StopTimer()
+    b.StopTimer()
 
-	if len(pixels) == 0 {
-		b.Fatal("Pixel slice is 0")
-	}
+    if len(pixels) == 0 {
+        b.Fatal("Pixel slice is 0")
+    }
 }
 
 func BenchmarkImportImagePixels(b *testing.B) {
-	wand := NewMagickWand()
-	defer wand.Destroy()
+    wand := NewMagickWand()
+    defer wand.Destroy()
 
-	wand.ReadImage("logo:")
-	wand.ScaleImage(1024, 1024)
+    wand.ReadImage("logo:")
+    wand.ScaleImage(1024, 1024)
 
-	val, _ := wand.ExportImagePixels(0, 0, 1024, 1024, "RGB", PIXEL_FLOAT)
-	pixels := val.([]float32)
+    val, _ := wand.ExportImagePixels(0, 0, 1024, 1024, "RGB", PIXEL_FLOAT)
+    pixels := val.([]float32)
 
-	b.ResetTimer()
+    b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
-		wand.ImportImagePixels(0, 0, 1024, 1024, "RGB", PIXEL_UNDEFINED, pixels)
-	}
+    for i := 0; i < b.N; i++ {
+        wand.ImportImagePixels(0, 0, 1024, 1024, "RGB", PIXEL_UNDEFINED, pixels)
+    }
 
-	b.StopTimer()
-}
-
-func TestReadImageFloats(t *testing.T) {
-	Initialize()
-	mw := NewMagickWand()
-	mw2 := NewMagickWand()
-	defer mw.Destroy()
-	defer mw2.Destroy()
-
-	mw.SetSize(128, 128)
-	mw.ReadImage(`logo:`)
-	width, height := mw.GetImageWidth(), mw.GetImageHeight()
-	pixels := mw.GetImageFloats(FLOAT_FORMAT_RGB)
-
-	mw2.ReadImageFloats(pixels, width, height, FLOAT_FORMAT_RGB)
-	width2, height2 := mw2.GetImageWidth(), mw2.GetImageHeight()
-	pixels2 := mw2.GetImageFloats(FLOAT_FORMAT_RGB)
-
-	if width != width2 || height != height2 {
-		t.Fatalf("Width/Height does not match original. Got %d/%d. Expected %d/%d", width, height, width2, height2)
-	}
-
-	for i, orig := range pixels {
-		if pixels2[i] != orig {
-			t.Fatalf("Float pixel value of new image does not match original: Got %f, expected %f", pixels2[i], orig)
-		}
-	}
-
-}
-
-func BenchmarkFloatPixels(b *testing.B) {
-	wand := NewMagickWand()
-	defer wand.Destroy()
-
-	wand.ReadImage("logo:")
-	wand.ScaleImage(1024, 1024)
-
-	var (
-		rowNum int
-		inc    int
-		pixel  *PixelWand
-		pixels []float32
-	)
-
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-
-		inc = 0
-		cols := int(wand.GetImageWidth())
-		rows := int(wand.GetImageHeight())
-		pixels := make([]float32, cols*rows*3)
-
-		pixIter := wand.NewPixelIterator()
-		defer pixIter.Destroy()
-
-		for rowNum = 0; rowNum < rows; rowNum++ {
-			for _, pixel = range pixIter.GetNextIteratorRow() {
-				pixels[inc] = float32(pixel.GetRed())
-				pixels[inc+1] = float32(pixel.GetGreen())
-				pixels[inc+2] = float32(pixel.GetBlue())
-				inc += 3
-			}
-		}
-	}
-
-	b.StopTimer()
-	b.Logf("len(pixels) == %d", len(pixels))
-}
-
-func BenchmarkFloatPixelsC(b *testing.B) {
-	wand := NewMagickWand()
-	defer wand.Destroy()
-
-	wand.ReadImage("logo:")
-	wand.ScaleImage(1024, 1024)
-
-	var pixels []float32
-
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		pixels = wand.GetImageFloats(FLOAT_FORMAT_RGB)
-	}
-
-	b.StopTimer()
-	b.Logf("len(pixels) == %d", len(pixels))
-}
-
-func BenchmarkReadFloatPixelsC(b *testing.B) {
-	wand := NewMagickWand()
-	defer wand.Destroy()
-
-	wand.ReadImage("logo:")
-	wand.ScaleImage(1024, 1024)
-	pixels := wand.GetImageFloats(FLOAT_FORMAT_RGB)
-
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		wand.ReadImageFloats(pixels, 1024, 1024, FLOAT_FORMAT_RGB)
-	}
-
-	b.StopTimer()
-	b.Logf("len(pixels) == %d", len(pixels))
+    b.StopTimer()
 }
